@@ -14,8 +14,15 @@ import cl.bajondelgorila.backend.model.DetallePedido;
 import cl.bajondelgorila.backend.model.Pedido;
 import cl.bajondelgorila.backend.service.PedidoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/v1/pedidos")
+@Tag(
+    name = "Pedidos",
+    description = "Gestion de pedidos y sus detalles"
+)
 public class PedidoController {
 
     private final PedidoService pedidoService;
@@ -27,11 +34,19 @@ public class PedidoController {
     }
 
     @GetMapping
+    @Operation(
+        summary = "Listar pedidos",
+        description = "Obtiene todos los pedidos registrados"
+    )
     public List<Pedido> obtenerPedidos(){
         return pedidoService.obtenerPedidos();
     }
 
     @GetMapping("/{idPedido}")
+    @Operation(
+        summary = "Buscar pedido",
+        description = "Obtiene un pedido mediante su identificador"
+    )
     public ResponseEntity<Pedido> obtenerPedidoPorId(
         @PathVariable Long idPedido
     ){
@@ -44,6 +59,10 @@ public class PedidoController {
     }
 
     @GetMapping("/{idPedido}/detalles")
+    @Operation(
+        summary = "Obtener detalles de un pedido",
+        description = "Obtiene los productos y cantidades asociados a un pedido"
+    )
     public List<DetallePedido> obtenerDetallesPorPedido(
         @PathVariable Long idPedido
     ){
@@ -53,6 +72,10 @@ public class PedidoController {
     }
 
     @GetMapping("/usuario/{idUsuario}")
+    @Operation(
+        summary = "Listar pedidos por usuario",
+        description = "Obtiene los pedidos asociados a un usuario registrado"
+    )
     public List<Pedido> obtenerPedidosPorUsuario(
         @PathVariable Long idUsuario
     ){
@@ -62,6 +85,10 @@ public class PedidoController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Crear pedido",
+        description = "Registra un pedido, sus detalles y actualiza el stock de los productos"
+    )
     public Pedido guardarPedido(
         @RequestBody PedidoRequest pedidoRequest
     ){

@@ -15,8 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 import cl.bajondelgorila.backend.model.Usuario;
 import cl.bajondelgorila.backend.service.UsuarioService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/v1/usuarios")
+@Tag(
+    name = "Usuarios",
+    description = "Gestion de usuarios del sistema"
+)
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -28,11 +35,19 @@ public class UsuarioController {
     }
 
     @GetMapping
+    @Operation(
+        summary = "Listar usuarios",
+        description = "Obtiene todos los usuarios registrados"
+    )
     public List<Usuario> obtenerUsuarios(){
         return usuarioService.obtenerUsuarios();
     }
 
     @GetMapping("/{idUsuario}")
+    @Operation(
+        summary = "Buscar usuario",
+        description = "Obtiene un usuario mediante su identificador"
+    )
     public ResponseEntity<Usuario> obtenerUsuarioPorId(
         @PathVariable Long idUsuario
     ){
@@ -45,6 +60,10 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Crear usuario",
+        description = "Registra un nuevo usuario"
+    )
     public Usuario guardarUsuario(
         @RequestBody Usuario usuario
     ){
@@ -54,6 +73,10 @@ public class UsuarioController {
     }
 
     @PutMapping("/{idUsuario}")
+    @Operation(
+        summary = "Actualizar usuario",
+        description = "Actualiza los datos de un usuario existente"
+    )
     public Usuario actualizarUsuario(
         @PathVariable Long idUsuario,
         @RequestBody Usuario usuario
@@ -65,6 +88,10 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{idUsuario}")
+    @Operation(
+        summary = "Eliminar usuario",
+        description = "Elimina un usuario mediante su identificador"
+    )
     public ResponseEntity<Void> eliminarUsuario(
         @PathVariable Long idUsuario
     ){
