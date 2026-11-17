@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import cl.bajondelgorila.backend.security.JwtAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -26,7 +28,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder(){
-
         return new BCryptPasswordEncoder();
     }
 
@@ -51,7 +52,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 auth -> auth
 
-                    // SWAGGER
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -59,86 +59,36 @@ public class SecurityConfig {
                     )
                     .permitAll()
 
-                    // AUTENTICACION
                     .requestMatchers(
                         "/api/v1/auth/**"
                     )
                     .permitAll()
 
-                    // PRODUCTOS PUBLICOS
+                    .requestMatchers(
+                        "/api/v1/usuarios/me"
+                    )
+                    .authenticated()
+
                     .requestMatchers(
                         HttpMethod.GET,
                         "/api/v1/productos/**"
                     )
                     .permitAll()
 
-                    // CATEGORIAS PUBLICAS
                     .requestMatchers(
                         HttpMethod.GET,
                         "/api/v1/categorias/**"
                     )
                     .permitAll()
 
-                    // PRODUCTOS SOLO ADMINISTRADOR
                     .requestMatchers(
                         HttpMethod.POST,
-                        "/api/v1/productos/**"
+                        "/api/v1/pedidos"
                     )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
+                    .permitAll()
 
                     .requestMatchers(
-                        HttpMethod.PUT,
-                        "/api/v1/productos/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    .requestMatchers(
-                        HttpMethod.DELETE,
-                        "/api/v1/productos/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    // CATEGORIAS SOLO ADMINISTRADOR
-                    .requestMatchers(
-                        HttpMethod.POST,
-                        "/api/v1/categorias/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    .requestMatchers(
-                        HttpMethod.PUT,
-                        "/api/v1/categorias/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    .requestMatchers(
-                        HttpMethod.DELETE,
-                        "/api/v1/categorias/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    // USUARIOS SOLO ADMINISTRADOR
-                    .requestMatchers(
-                        "/api/v1/usuarios/**"
-                    )
-                    .hasRole(
-                        "ADMINISTRADOR"
-                    )
-
-                    // PEDIDOS ADMINISTRADOR O VENDEDOR
-                    .requestMatchers(
+                        HttpMethod.GET,
                         "/api/v1/pedidos/**"
                     )
                     .hasAnyRole(
@@ -146,7 +96,61 @@ public class SecurityConfig {
                         "VENDEDOR"
                     )
 
-                    // RESTO DE RUTAS
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/v1/productos/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        HttpMethod.PUT,
+                        "/api/v1/productos/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/api/v1/productos/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/v1/categorias/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        HttpMethod.PUT,
+                        "/api/v1/categorias/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        HttpMethod.DELETE,
+                        "/api/v1/categorias/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
+                    .requestMatchers(
+                        "/api/v1/usuarios/**"
+                    )
+                    .hasRole(
+                        "ADMINISTRADOR"
+                    )
+
                     .anyRequest()
                     .authenticated()
             )

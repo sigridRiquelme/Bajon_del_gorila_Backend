@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cl.bajondelgorila.backend.dto.AuthResponse;
 import cl.bajondelgorila.backend.dto.LoginRequest;
-import cl.bajondelgorila.backend.model.Usuario;
+import cl.bajondelgorila.backend.dto.RegistroRequest;
 import cl.bajondelgorila.backend.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,21 +31,21 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(
-        summary = "Registrar usuario",
-        description = "Registra un nuevo usuario, cifra su contrasena y genera un token JWT"
+        summary = "Registrar cliente",
+        description = "Registra un nuevo usuario con rol CLIENTE"
     )
     public AuthResponse registrar(
-        @RequestBody Usuario usuario
+        @RequestBody RegistroRequest registroRequest
     ){
         return authService.registrar(
-            usuario
+            registroRequest
         );
     }
 
     @PostMapping("/login")
     @Operation(
         summary = "Iniciar sesion",
-        description = "Valida correo y contrasena y genera un token JWT"
+        description = "Valida las credenciales y genera un token JWT"
     )
     public AuthResponse login(
         @RequestBody LoginRequest loginRequest

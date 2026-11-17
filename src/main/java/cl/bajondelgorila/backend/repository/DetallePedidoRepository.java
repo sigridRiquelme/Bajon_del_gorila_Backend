@@ -12,4 +12,8 @@ public interface DetallePedidoRepository
     List<DetallePedido> findByPedidoIdPedido(
         Long idPedido
     );
+
+    boolean existsByProductoIdProducto(
+        Long idProducto
+    );
 }

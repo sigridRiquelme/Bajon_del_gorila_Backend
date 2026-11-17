@@ -18,4 +18,8 @@ public interface ProductoRepository
     );
 
     List<Producto> findByPromocionTrue();
+
+    boolean existsByCategoriaIdCategoria(
+        Long idCategoria
+    );
 }

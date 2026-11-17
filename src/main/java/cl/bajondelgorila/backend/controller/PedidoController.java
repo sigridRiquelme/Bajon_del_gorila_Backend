@@ -2,7 +2,7 @@ package cl.bajondelgorila.backend.controller;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/v1/pedidos")
 @Tag(
     name = "Pedidos",
-    description = "Gestion de pedidos y sus detalles"
+    description = "Gestion y consulta de pedidos"
 )
 public class PedidoController {
 
@@ -39,63 +39,63 @@ public class PedidoController {
         description = "Obtiene todos los pedidos registrados"
     )
     public List<Pedido> obtenerPedidos(){
-        return pedidoService.obtenerPedidos();
+
+        return pedidoService
+            .obtenerPedidos();
     }
 
     @GetMapping("/{idPedido}")
     @Operation(
         summary = "Buscar pedido",
-        description = "Obtiene un pedido mediante su identificador"
+        description = "Obtiene un pedido por su identificador"
     )
-    public ResponseEntity<Pedido> obtenerPedidoPorId(
+    public Pedido obtenerPedidoPorId(
         @PathVariable Long idPedido
     ){
+
         return pedidoService
-            .obtenerPedidoPorId(idPedido)
-            .map(ResponseEntity::ok)
-            .orElse(
-                ResponseEntity.notFound().build()
+            .obtenerPedidoPorId(
+                idPedido
+            )
+            .orElseThrow(
+                () -> new RuntimeException(
+                    "PEDIDO NO ENCONTRADO"
+                )
             );
     }
 
     @GetMapping("/{idPedido}/detalles")
     @Operation(
-        summary = "Obtener detalles de un pedido",
-        description = "Obtiene los productos y cantidades asociados a un pedido"
+        summary = "Obtener detalle del pedido",
+        description = "Obtiene los productos asociados a un pedido"
     )
-    public List<DetallePedido> obtenerDetallesPorPedido(
+    public List<DetallePedido> obtenerDetallesPedido(
         @PathVariable Long idPedido
     ){
-        return pedidoService.obtenerDetallesPorPedido(
-            idPedido
-        );
-    }
 
-    @GetMapping("/usuario/{idUsuario}")
-    @Operation(
-        summary = "Listar pedidos por usuario",
-        description = "Obtiene los pedidos asociados a un usuario registrado"
-    )
-    public List<Pedido> obtenerPedidosPorUsuario(
-        @PathVariable Long idUsuario
-    ){
-        return pedidoService.obtenerPedidosPorUsuario(
-            idUsuario
-        );
+        return pedidoService
+            .obtenerDetallesPedido(
+                idPedido
+            );
     }
 
     @PostMapping
+    @PreAuthorize(
+        "isAnonymous() or hasRole('CLIENTE')"
+    )
     @Operation(
         summary = "Crear pedido",
-        description = "Registra un pedido, sus detalles y actualiza el stock de los productos"
+        description = "Permite crear pedidos a invitados y clientes autenticados"
     )
-    public Pedido guardarPedido(
-        @RequestBody PedidoRequest pedidoRequest
+    public Pedido crearPedido(
+        @RequestBody PedidoRequest request
     ){
-        return pedidoService.guardarPedido(
-            pedidoRequest.getPedido(),
-            pedidoRequest.getDetalles()
-        );
+
+        return pedidoService
+            .guardarPedido(
+                request.getPedido(),
+                request.getDetalles()
+            );
     }
 
     public static class PedidoRequest {

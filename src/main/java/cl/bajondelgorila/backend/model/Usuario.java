@@ -1,5 +1,7 @@
 package cl.bajondelgorila.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,6 +23,9 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String correo;
 
+    @JsonProperty(
+        access = JsonProperty.Access.WRITE_ONLY
+    )
     @Column(nullable = false, length = 255)
     private String password;
 
@@ -33,6 +38,9 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private String rol;
 
+    @Column(nullable = false)
+    private Boolean administradorPrincipal = false;
+
     public Usuario(){
 
     }
@@ -44,7 +52,8 @@ public class Usuario {
         String password,
         String telefono,
         String direccion,
-        String rol
+        String rol,
+        Boolean administradorPrincipal
     ){
         this.idUsuario = idUsuario;
         this.nombre = nombre;
@@ -53,6 +62,7 @@ public class Usuario {
         this.telefono = telefono;
         this.direccion = direccion;
         this.rol = rol;
+        this.administradorPrincipal = administradorPrincipal;
     }
 
     public Long getIdUsuario(){
@@ -123,5 +133,15 @@ public class Usuario {
         String rol
     ){
         this.rol = rol;
+    }
+
+    public Boolean getAdministradorPrincipal(){
+        return administradorPrincipal;
+    }
+
+    public void setAdministradorPrincipal(
+        Boolean administradorPrincipal
+    ){
+        this.administradorPrincipal = administradorPrincipal;
     }
 }

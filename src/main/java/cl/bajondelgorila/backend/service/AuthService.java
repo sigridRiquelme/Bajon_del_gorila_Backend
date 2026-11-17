@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import cl.bajondelgorila.backend.dto.AuthResponse;
 import cl.bajondelgorila.backend.dto.LoginRequest;
+import cl.bajondelgorila.backend.dto.RegistroRequest;
 import cl.bajondelgorila.backend.model.Usuario;
 import cl.bajondelgorila.backend.repository.UsuarioRepository;
 import cl.bajondelgorila.backend.security.JwtService;
@@ -29,12 +30,39 @@ public class AuthService {
     }
 
     public AuthResponse registrar(
-        Usuario usuario
+        RegistroRequest registroRequest
     ){
 
         if (
+            registroRequest.getNombre() == null
+            || registroRequest.getNombre().isBlank()
+        ){
+            throw new RuntimeException(
+                "EL NOMBRE ES OBLIGATORIO"
+            );
+        }
+
+        if (
+            registroRequest.getCorreo() == null
+            || registroRequest.getCorreo().isBlank()
+        ){
+            throw new RuntimeException(
+                "EL CORREO ES OBLIGATORIO"
+            );
+        }
+
+        if (
+            registroRequest.getPassword() == null
+            || registroRequest.getPassword().isBlank()
+        ){
+            throw new RuntimeException(
+                "LA CONTRASENA ES OBLIGATORIA"
+            );
+        }
+
+        if (
             usuarioRepository.existsByCorreo(
-                usuario.getCorreo()
+                registroRequest.getCorreo()
             )
         ){
             throw new RuntimeException(
@@ -42,14 +70,37 @@ public class AuthService {
             );
         }
 
+        Usuario usuario =
+            new Usuario();
+
+        usuario.setNombre(
+            registroRequest.getNombre()
+        );
+
+        usuario.setCorreo(
+            registroRequest.getCorreo()
+        );
+
         usuario.setPassword(
             passwordEncoder.encode(
-                usuario.getPassword()
+                registroRequest.getPassword()
             )
+        );
+
+        usuario.setTelefono(
+            registroRequest.getTelefono()
+        );
+
+        usuario.setDireccion(
+            registroRequest.getDireccion()
         );
 
         usuario.setRol(
             "CLIENTE"
+        );
+
+        usuario.setAdministradorPrincipal(
+            false
         );
 
         Usuario usuarioGuardado =

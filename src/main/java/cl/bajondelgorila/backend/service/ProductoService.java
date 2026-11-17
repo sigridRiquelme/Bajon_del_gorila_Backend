@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import cl.bajondelgorila.backend.model.Categoria;
 import cl.bajondelgorila.backend.model.Producto;
 import cl.bajondelgorila.backend.repository.CategoriaRepository;
+import cl.bajondelgorila.backend.repository.DetallePedidoRepository;
 import cl.bajondelgorila.backend.repository.ProductoRepository;
 
 @Service
@@ -17,12 +18,16 @@ public class ProductoService {
 
     private final CategoriaRepository categoriaRepository;
 
+    private final DetallePedidoRepository detallePedidoRepository;
+
     public ProductoService(
         ProductoRepository productoRepository,
-        CategoriaRepository categoriaRepository
+        CategoriaRepository categoriaRepository,
+        DetallePedidoRepository detallePedidoRepository
     ){
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
+        this.detallePedidoRepository = detallePedidoRepository;
     }
 
     public List<Producto> obtenerProductos(){
@@ -32,7 +37,9 @@ public class ProductoService {
     public Optional<Producto> obtenerProductoPorId(
         Long idProducto
     ){
-        return productoRepository.findById(idProducto);
+        return productoRepository.findById(
+            idProducto
+        );
     }
 
     public List<Producto> obtenerProductosPorCategoria(
@@ -58,23 +65,23 @@ public class ProductoService {
     public Producto guardarProducto(
         Producto producto
     ){
-        Categoria categoria = categoriaRepository
-            .findById(
+
+        validarProducto(
+            producto
+        );
+
+        Categoria categoria =
+            obtenerCategoria(
                 producto
-                    .getCategoria()
-                    .getIdCategoria()
-            )
-            .orElseThrow(
-                () -> new RuntimeException(
-                    "CATEGORIA NO ENCONTRADA"
-                )
             );
 
-        producto.setCategoria(categoria);
+        producto.setCategoria(
+            categoria
+        );
 
-        if (producto.getStock() == 0){
-            producto.setEstado("SIN STOCK");
-        }
+        establecerEstadoStock(
+            producto
+        );
 
         return productoRepository.save(
             producto
@@ -85,24 +92,25 @@ public class ProductoService {
         Long idProducto,
         Producto producto
     ){
-        Producto productoExistente = productoRepository
-            .findById(idProducto)
-            .orElseThrow(
-                () -> new RuntimeException(
-                    "PRODUCTO NO ENCONTRADO"
-                )
-            );
 
-        Categoria categoria = categoriaRepository
-            .findById(
-                producto
-                    .getCategoria()
-                    .getIdCategoria()
-            )
-            .orElseThrow(
-                () -> new RuntimeException(
-                    "CATEGORIA NO ENCONTRADA"
+        Producto productoExistente =
+            productoRepository
+                .findById(
+                    idProducto
                 )
+                .orElseThrow(
+                    () -> new RuntimeException(
+                        "PRODUCTO NO ENCONTRADO"
+                    )
+                );
+
+        validarProducto(
+            producto
+        );
+
+        Categoria categoria =
+            obtenerCategoria(
+                producto
             );
 
         productoExistente.setCategoria(
@@ -141,11 +149,9 @@ public class ProductoService {
             producto.getDescuento()
         );
 
-        if (producto.getStock() == 0){
-            productoExistente.setEstado(
-                "SIN STOCK"
-            );
-        }
+        establecerEstadoStock(
+            productoExistente
+        );
 
         return productoRepository.save(
             productoExistente
@@ -155,14 +161,162 @@ public class ProductoService {
     public void eliminarProducto(
         Long idProducto
     ){
-        if (!productoRepository.existsById(idProducto)){
+
+        Producto producto =
+            productoRepository
+                .findById(
+                    idProducto
+                )
+                .orElseThrow(
+                    () -> new RuntimeException(
+                        "PRODUCTO NO ENCONTRADO"
+                    )
+                );
+
+        if (
+            detallePedidoRepository
+                .existsByProductoIdProducto(
+                    idProducto
+                )
+        ){
             throw new RuntimeException(
-                "PRODUCTO NO ENCONTRADO"
+                "NO SE PUEDE ELIMINAR UN PRODUCTO QUE TIENE VENTAS REGISTRADAS. CAMBIA SU ESTADO A INACTIVO"
             );
         }
 
-        productoRepository.deleteById(
-            idProducto
+        productoRepository.delete(
+            producto
         );
+    }
+
+    private Categoria obtenerCategoria(
+        Producto producto
+    ){
+
+        if (
+            producto.getCategoria() == null
+            || producto
+                .getCategoria()
+                .getIdCategoria() == null
+        ){
+            throw new RuntimeException(
+                "CATEGORIA NO VALIDA"
+            );
+        }
+
+        return categoriaRepository
+            .findById(
+                producto
+                    .getCategoria()
+                    .getIdCategoria()
+            )
+            .orElseThrow(
+                () -> new RuntimeException(
+                    "CATEGORIA NO ENCONTRADA"
+                )
+            );
+    }
+
+    private void validarProducto(
+        Producto producto
+    ){
+
+        if (
+            producto.getNombre() == null
+            || producto.getNombre().isBlank()
+        ){
+            throw new RuntimeException(
+                "EL NOMBRE DEL PRODUCTO ES OBLIGATORIO"
+            );
+        }
+
+        if (
+            producto.getPrecio() == null
+            || producto.getPrecio() <= 0
+        ){
+            throw new RuntimeException(
+                "EL PRECIO DEBE SER MAYOR A CERO"
+            );
+        }
+
+        if (
+            producto.getStock() == null
+            || producto.getStock() < 0
+        ){
+            throw new RuntimeException(
+                "EL STOCK NO PUEDE SER NEGATIVO"
+            );
+        }
+
+        if (
+            producto.getPromocion() == null
+        ){
+            producto.setPromocion(
+                false
+            );
+        }
+
+        if (
+            producto.getDescuento() == null
+        ){
+            producto.setDescuento(
+                0
+            );
+        }
+
+        if (
+            producto.getDescuento() < 0
+            || producto.getDescuento() > 100
+        ){
+            throw new RuntimeException(
+                "EL DESCUENTO DEBE ESTAR ENTRE 0 Y 100"
+            );
+        }
+
+        if (
+            !producto.getPromocion()
+        ){
+            producto.setDescuento(
+                0
+            );
+        }
+
+        if (
+            producto.getEstado() == null
+            || producto.getEstado().isBlank()
+        ){
+            producto.setEstado(
+                "ACTIVO"
+            );
+        }
+
+        if (
+            !producto.getEstado().equals(
+                "ACTIVO"
+            )
+            && !producto.getEstado().equals(
+                "INACTIVO"
+            )
+            && !producto.getEstado().equals(
+                "SIN STOCK"
+            )
+        ){
+            throw new RuntimeException(
+                "ESTADO DE PRODUCTO NO VALIDO"
+            );
+        }
+    }
+
+    private void establecerEstadoStock(
+        Producto producto
+    ){
+
+        if (
+            producto.getStock() == 0
+        ){
+            producto.setEstado(
+                "SIN STOCK"
+            );
+        }
     }
 }

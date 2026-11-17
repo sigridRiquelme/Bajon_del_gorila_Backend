@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -12,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import cl.bajondelgorila.backend.model.Usuario;
+import cl.bajondelgorila.backend.dto.ActualizarPerfilRequest;
+import cl.bajondelgorila.backend.dto.CambiarRolRequest;
+import cl.bajondelgorila.backend.dto.CrearUsuarioAdminRequest;
+import cl.bajondelgorila.backend.dto.UsuarioResponse;
 import cl.bajondelgorila.backend.service.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/v1/usuarios")
 @Tag(
     name = "Usuarios",
-    description = "Gestion de usuarios del sistema"
+    description = "Gestion de usuarios y perfil"
 )
 public class UsuarioController {
 
@@ -34,13 +38,41 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+    @GetMapping("/me")
+    @Operation(
+        summary = "Obtener perfil",
+        description = "Obtiene los datos del usuario autenticado"
+    )
+    public UsuarioResponse obtenerMiPerfil(){
+
+        return usuarioService
+            .obtenerMiPerfil();
+    }
+
+    @PutMapping("/me")
+    @Operation(
+        summary = "Actualizar perfil",
+        description = "Permite al usuario autenticado modificar sus propios datos"
+    )
+    public UsuarioResponse actualizarMiPerfil(
+        @RequestBody ActualizarPerfilRequest request
+    ){
+
+        return usuarioService
+            .actualizarMiPerfil(
+                request
+            );
+    }
+
     @GetMapping
     @Operation(
         summary = "Listar usuarios",
-        description = "Obtiene todos los usuarios registrados"
+        description = "Obtiene todos los usuarios sin exponer sus contrasenas"
     )
-    public List<Usuario> obtenerUsuarios(){
-        return usuarioService.obtenerUsuarios();
+    public List<UsuarioResponse> obtenerUsuarios(){
+
+        return usuarioService
+            .obtenerUsuarios();
     }
 
     @GetMapping("/{idUsuario}")
@@ -48,57 +80,63 @@ public class UsuarioController {
         summary = "Buscar usuario",
         description = "Obtiene un usuario mediante su identificador"
     )
-    public ResponseEntity<Usuario> obtenerUsuarioPorId(
+    public UsuarioResponse obtenerUsuarioPorId(
         @PathVariable Long idUsuario
     ){
+
         return usuarioService
-            .obtenerUsuarioPorId(idUsuario)
-            .map(ResponseEntity::ok)
-            .orElse(
-                ResponseEntity.notFound().build()
+            .obtenerUsuarioPorId(
+                idUsuario
             );
     }
 
-    @PostMapping
+    @PostMapping("/administrativos")
     @Operation(
-        summary = "Crear usuario",
-        description = "Registra un nuevo usuario"
+        summary = "Crear usuario administrativo",
+        description = "Permite crear cuentas de vendedor o administrador"
     )
-    public Usuario guardarUsuario(
-        @RequestBody Usuario usuario
+    public UsuarioResponse crearUsuarioAdministrativo(
+        @RequestBody CrearUsuarioAdminRequest request
     ){
-        return usuarioService.guardarUsuario(
-            usuario
-        );
+
+        return usuarioService
+            .crearUsuarioAdministrativo(
+                request
+            );
     }
 
-    @PutMapping("/{idUsuario}")
+    @PatchMapping("/{idUsuario}/rol")
     @Operation(
-        summary = "Actualizar usuario",
-        description = "Actualiza los datos de un usuario existente"
+        summary = "Cambiar rol",
+        description = "Permite al administrador otorgar o quitar roles"
     )
-    public Usuario actualizarUsuario(
+    public UsuarioResponse cambiarRol(
         @PathVariable Long idUsuario,
-        @RequestBody Usuario usuario
+        @RequestBody CambiarRolRequest request
     ){
-        return usuarioService.actualizarUsuario(
-            idUsuario,
-            usuario
-        );
+
+        return usuarioService
+            .cambiarRol(
+                idUsuario,
+                request
+            );
     }
 
     @DeleteMapping("/{idUsuario}")
     @Operation(
         summary = "Eliminar usuario",
-        description = "Elimina un usuario mediante su identificador"
+        description = "Elimina un usuario excepto el administrador principal"
     )
     public ResponseEntity<Void> eliminarUsuario(
         @PathVariable Long idUsuario
     ){
+
         usuarioService.eliminarUsuario(
             idUsuario
         );
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+            .noContent()
+            .build();
     }
 }
