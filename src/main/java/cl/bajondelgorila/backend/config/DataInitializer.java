@@ -26,14 +26,7 @@ public class DataInitializer implements CommandLineRunner {
 
         boolean existeAdminPrincipal =
             usuarioRepository
-                .findAll()
-                .stream()
-                .anyMatch(
-                    usuario ->
-                        Boolean.TRUE.equals(
-                            usuario.getAdministradorPrincipal()
-                        )
-                );
+                .existsByAdministradorPrincipalTrue();
 
         if (!existeAdminPrincipal){
 
