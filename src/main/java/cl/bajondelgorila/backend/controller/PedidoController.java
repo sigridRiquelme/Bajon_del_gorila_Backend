@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cl.bajondelgorila.backend.dto.PedidoClienteResponse;
 import cl.bajondelgorila.backend.model.DetallePedido;
 import cl.bajondelgorila.backend.model.Pedido;
 import cl.bajondelgorila.backend.service.PedidoService;
@@ -42,6 +43,20 @@ public class PedidoController {
 
         return pedidoService
             .obtenerPedidos();
+    }
+
+    @GetMapping("/mis-pedidos")
+    @PreAuthorize(
+        "hasRole('CLIENTE')"
+    )
+    @Operation(
+        summary = "Obtener mis pedidos",
+        description = "Obtiene solamente los pedidos del cliente autenticado"
+    )
+    public List<PedidoClienteResponse> obtenerMisPedidos(){
+
+        return pedidoService
+            .obtenerMisPedidos();
     }
 
     @GetMapping("/{idPedido}")

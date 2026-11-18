@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cl.bajondelgorila.backend.dto.PedidoClienteResponse;
 import cl.bajondelgorila.backend.model.DetallePedido;
 import cl.bajondelgorila.backend.model.Pedido;
 import cl.bajondelgorila.backend.model.Producto;
@@ -88,6 +89,42 @@ public class PedidoService {
             .findByPedidoIdPedido(
                 idPedido
             );
+    }
+
+    public List<PedidoClienteResponse> obtenerMisPedidos(){
+
+        Usuario usuario =
+            obtenerUsuarioAutenticado();
+
+        if (
+            !usuario.getRol().equals(
+                "CLIENTE"
+            )
+        ){
+            throw new RuntimeException(
+                "SOLO LOS CLIENTES PUEDEN CONSULTAR SUS PEDIDOS"
+            );
+        }
+
+        List<Pedido> pedidos =
+            pedidoRepository
+                .findByUsuarioIdUsuario(
+                    usuario.getIdUsuario()
+                );
+
+        return pedidos
+            .stream()
+            .map(
+                pedido ->
+                    new PedidoClienteResponse(
+                        pedido,
+                        detallePedidoRepository
+                            .findByPedidoIdPedido(
+                                pedido.getIdPedido()
+                            )
+                    )
+            )
+            .toList();
     }
 
     @Transactional
@@ -328,9 +365,11 @@ public class PedidoService {
         if (
             authentication == null
             || !authentication.isAuthenticated()
-            || authentication.getName().equals(
-                "anonymousUser"
-            )
+            || authentication
+                .getName()
+                .equals(
+                    "anonymousUser"
+                )
         ){
 
             pedido.setUsuario(
@@ -341,15 +380,7 @@ public class PedidoService {
         }
 
         Usuario usuario =
-            usuarioRepository
-                .findByCorreo(
-                    authentication.getName()
-                )
-                .orElseThrow(
-                    () -> new RuntimeException(
-                        "USUARIO AUTENTICADO NO ENCONTRADO"
-                    )
-                );
+            obtenerUsuarioAutenticado();
 
         if (
             !usuario.getRol().equals(
@@ -376,6 +407,38 @@ public class PedidoService {
         pedido.setTelefono(
             usuario.getTelefono()
         );
+    }
+
+    private Usuario obtenerUsuarioAutenticado(){
+
+        Authentication authentication =
+            SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (
+            authentication == null
+            || !authentication.isAuthenticated()
+            || authentication
+                .getName()
+                .equals(
+                    "anonymousUser"
+                )
+        ){
+            throw new RuntimeException(
+                "USUARIO NO AUTENTICADO"
+            );
+        }
+
+        return usuarioRepository
+            .findByCorreo(
+                authentication.getName()
+            )
+            .orElseThrow(
+                () -> new RuntimeException(
+                    "USUARIO AUTENTICADO NO ENCONTRADO"
+                )
+            );
     }
 
     private Producto obtenerProducto(

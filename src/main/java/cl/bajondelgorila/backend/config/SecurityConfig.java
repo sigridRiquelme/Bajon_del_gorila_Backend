@@ -28,6 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder(){
+
         return new BCryptPasswordEncoder();
     }
 
@@ -52,6 +53,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 auth -> auth
 
+                    // SWAGGER
+
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/swagger-ui.html",
@@ -59,15 +62,24 @@ public class SecurityConfig {
                     )
                     .permitAll()
 
+
+                    // AUTENTICACION
+
                     .requestMatchers(
                         "/api/v1/auth/**"
                     )
                     .permitAll()
 
+
+                    // PERFIL PROPIO
+
                     .requestMatchers(
                         "/api/v1/usuarios/me"
                     )
                     .authenticated()
+
+
+                    // PRODUCTOS PUBLICOS
 
                     .requestMatchers(
                         HttpMethod.GET,
@@ -75,17 +87,37 @@ public class SecurityConfig {
                     )
                     .permitAll()
 
+
+                    // CATEGORIAS PUBLICAS
+
                     .requestMatchers(
                         HttpMethod.GET,
                         "/api/v1/categorias/**"
                     )
                     .permitAll()
 
+
+                    // CREAR PEDIDO
+
                     .requestMatchers(
                         HttpMethod.POST,
                         "/api/v1/pedidos"
                     )
                     .permitAll()
+
+
+                    // PEDIDOS DEL CLIENTE
+
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/v1/pedidos/mis-pedidos"
+                    )
+                    .hasRole(
+                        "CLIENTE"
+                    )
+
+
+                    // CONSULTAR TODOS LOS PEDIDOS
 
                     .requestMatchers(
                         HttpMethod.GET,
@@ -96,6 +128,9 @@ public class SecurityConfig {
                         "VENDEDOR"
                     )
 
+
+                    // GESTIONAR PRODUCTOS
+
                     .requestMatchers(
                         HttpMethod.POST,
                         "/api/v1/productos/**"
@@ -120,6 +155,9 @@ public class SecurityConfig {
                         "ADMINISTRADOR"
                     )
 
+
+                    // GESTIONAR CATEGORIAS
+
                     .requestMatchers(
                         HttpMethod.POST,
                         "/api/v1/categorias/**"
@@ -143,6 +181,9 @@ public class SecurityConfig {
                     .hasRole(
                         "ADMINISTRADOR"
                     )
+
+
+                    // GESTIONAR USUARIOS
 
                     .requestMatchers(
                         "/api/v1/usuarios/**"
@@ -150,6 +191,9 @@ public class SecurityConfig {
                     .hasRole(
                         "ADMINISTRADOR"
                     )
+
+
+                    // CUALQUIER OTRA RUTA
 
                     .anyRequest()
                     .authenticated()
