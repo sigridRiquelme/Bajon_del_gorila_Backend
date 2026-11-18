@@ -16,4 +16,6 @@ public interface UsuarioRepository
     boolean existsByCorreo(
         String correo
     );
+
+    boolean existsByAdministradorPrincipalTrue();
 }
